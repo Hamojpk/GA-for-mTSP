@@ -3,14 +3,17 @@ Represents nodes in the problem graph or network.
 Locatin coordinates can be passed while creating the object or they
 will be assigned random values.
 '''
-from globals import *
+import math
+import random
+
+import globals
 
 class Dustbin:
 	# Good old constructor
 	def __init__ (self, x = None, y = None):
 		if x == None and y == None:
-			self.x = random.randint(0, xMax)
-			self.y = random.randint(0, yMax)
+			self.x = random.randint(0, globals.xMax)
+			self.y = random.randint(0, globals.yMax)
 		else:
 			self.x = x
 			self.y = y
@@ -21,8 +24,10 @@ class Dustbin:
 	def getY (self):
 		return self.y
 
+
 	# Returns distance to the dustbin passed as argument
 	def distanceTo (self, db):
+		globals.calutime+=1
 		xDis = abs(self.getX() - db.getX())
 		yDis = abs(self.getY() - db.getY())
 		dis = math.sqrt((xDis*xDis) + (yDis*yDis))
@@ -31,6 +36,10 @@ class Dustbin:
 	# Gives string representation of the Object with coordinates
 	def toString (self):
 		s =  '(' + str(self.getX()) + ',' + str(self.getY()) + ')'
+		return s
+
+	def __str__(self):
+		s = '(' + str(self.getX()) + ',' + str(self.getY()) + ')'
 		return s
 
 	# Check if cordinates have been assigned or not

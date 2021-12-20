@@ -1,11 +1,10 @@
-'''
-Represents the chromosomes in GA's population.
-The object is collection of individual routes taken by trucks.
-'''
 import globals
-from routemanager import *
+from dustbin import Dustbin
+from globals import *
+from routemanager import RouteManager
 
-class Route:
+
+class NewRoute:
     # Good old constructor
     def __init__ (self, route = None):
         # 2D array which is collection of respective routes taken by trucks
@@ -13,11 +12,8 @@ class Route:
         # 1D array having routes in a series - used during crossover operation
         self.base = []
         # 1D array having route lengths
-        self.routeLengths = globals.route_lengths()
-
-        for i in range(globals.numTrucks):
-            self.route.append([])
-
+        self.routeLengths = route_lengths()
+        self.startpos=RouteManager.getDustbin(0)
         # fitness value and total distance of all routes
         self.fitness = 0
         self.distance = 0
@@ -31,26 +27,36 @@ class Route:
             self.route = route
 
     def generateIndividual (self):
-        self.routeLengths = globals.route_lengths()
+        self.routeLengths = route_lengths()
         k=0
         # put 1st member of RouteManager as it is (It represents the initial node) and shuffle the rest before adding
         for dindex in range(1, RouteManager.numberOfDustbins()):
             self.base[dindex-1] = RouteManager.getDustbin(dindex)
         random.shuffle(self.base)
-
-        for i in range(globals.numTrucks):
-            self.route[i].append(RouteManager.getDustbin(0)) # add same first node for each route
+        self.startpos=RouteManager.getDustbin(0)
+        pos=0
+        for i in range(numTrucks):
+            # add same first node for each route
             for j in range(self.routeLengths[i]-1):
-                self.route[i].append(self.base[k]) # add shuffled values for rest
+                pos+=1
+                self.route.append(self.base[k]) # add shuffled values for rest
                 k+=1
 
     # Returns j'th dustbin in i'th route
     def getDustbin(self, i, j):
-        return self.route[i][j]
+        pos=0
+        for p in range(i):
+            pos+=self.routeLengths[p]-1
+        pos+=(j-1)
+        return self.route[pos]
 
     # Sets value of j'th dustbin in i'th route
     def setDustbin(self, i, j, db):
-        self.route[i][j] = db
+        pos = 0
+        for p in range(i):
+            pos += self.routeLengths[p]
+        pos += j
+        self.route[pos] = db
         #self.route.insert(index, db)
         self.fitness = 0
         self.distance = 0
@@ -58,7 +64,7 @@ class Route:
     # Returns the fitness value of route
     def getFitness(self):
         if self.fitness == 0:
-            self.fitness = 1/self.getDistance()
+            self.fitness = 9000/self.getDistance()
 
         return self.fitness
 
@@ -66,22 +72,20 @@ class Route:
     def getDistance(self):
 
         if self.distance == 0:
-            globals.distime+=1
+
             routeDistance = 0
-            for i in range(globals.numTrucks):
-                for j in range(self.routeLengths[i]):
-                    fromDustbin = self.getDustbin(i, j)
-
-                    if j+1 < self.routeLengths[i]:
-                        destinationDustbin = self.getDustbin(i, j + 1)
-
+            pos=0
+            for i in range(numTrucks):
+                routeDistance+=self.startpos.distanceTo(self.route[pos])
+                for j in range(self.routeLengths[i]-1):
+                    fromDustbin = self.route[pos+j]
+                    if j+1 < self.routeLengths[i]-1:
+                        destinationDustbin = self.route[pos+j+1]
                     else:
-                        destinationDustbin = self.getDustbin(i, 0)
-
+                        destinationDustbin = self.startpos
                     routeDistance += fromDustbin.distanceTo(destinationDustbin)
-
-            self.distance =  routeDistance
-
+                pos += j+1
+            self.distance=routeDistance
         return self.distance
 
     # Checks if the route contains a particular dustbin
@@ -95,11 +99,14 @@ class Route:
     def toString (self):
         geneString = '|'
         print (self.routeLengths)
-        #for k in range(RouteManager.globals.numberOfDustbins()-1):
+        #for k in range(RouteManager.numberOfDustbins()-1):
         #    print (self.base[k].toString())
-        for i in range(globals.numTrucks):
-            for j in range(self.routeLengths[i]):
-                geneString += self.getDustbin(i,j).toString() + '|'
+        pos=0
+        for i in range(numTrucks):
+            geneString+=self.startpos.toString()+'|'
+            for j in range(self.routeLengths[i]-1):
+                geneString += self.route[pos+j].toString() + '|'
             geneString += '\n'
+            pos+=(j+1)
 
         return geneString

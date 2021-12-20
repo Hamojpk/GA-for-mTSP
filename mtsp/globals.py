@@ -4,10 +4,11 @@ import math
 Contains all global variables specific to simulation
 '''
 # Defines range for coordinates when dustbins are randomly scattered
+distime=0
 xMax = 1000
 yMax = 1000
 seedValue = 1
-numNodes = 200
+numNodes = 100
 numGenerations = 70
 # size of population
 populationSize = 100
@@ -15,8 +16,10 @@ mutationRate = 0.02
 tournamentSize = 10
 elitism = True
 # number of trucks
-numTrucks = 10
-
+numTrucks = 5
+xlist=[]
+ylist=[]
+calutime=0
 def random_range(n, total):
     """Return a randomly chosen list of n positive integers summing to total.
     Each such list is equally likely to occur."""
@@ -37,3 +40,19 @@ def route_lengths():
         else:
                 a = random_range(numTrucks, upper)
     return a
+
+
+def loadSet(name):
+    global numNodes,xlist,ylist
+    f=open(name,'r')
+    s=f.readlines()
+    num=int(s[0])
+    numNodes=num
+    for i in range(1,len(s)):
+        if s[i]=='\n':
+            continue
+        txt=s[i].split(' ')
+        xlist.append(int(txt[1]))
+        ylist.append(int(txt[2]))
+    return num
+

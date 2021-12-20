@@ -3,7 +3,7 @@ The main helper class for Genetic Algorithm to perform
 crossover, mutation on populations to evolve them
 '''
 from population import *
-
+import globals
 class GA:
 
     @classmethod
@@ -14,7 +14,7 @@ class GA:
 
         elitismOffset = 0
         # If fittest chromosome has to be passed directly to next generation
-        if elitism:
+        if globals.elitism:
             newPopulation.saveRoute(0, pop.getFittest())
             elitismOffset = 1
 
@@ -37,39 +37,39 @@ class GA:
     @classmethod
     def crossover (cls, parent1, parent2):
         child = Route()
-        child.base.append(Dustbin(-1, -1)) # since size is (numNodes - 1) by default
+        child.base.append(Dustbin(-1, -1)) # since size is (globals.numNodes - 1) by default
         startPos = 0
         endPos = 0
         while (startPos >= endPos):
-            startPos = random.randint(1, numNodes-1)
-            endPos = random.randint(1, numNodes-1)
+            startPos = random.randint(1, globals.numNodes-1)
+            endPos = random.randint(1, globals.numNodes-1)
 
         parent1.base = [parent1.route[0][0]]
         parent2.base = [parent2.route[0][0]]
 
-        for i in range(numTrucks):
+        for i in range(globals.numTrucks):
             for j in range(1, parent1.routeLengths[i]):
                 parent1.base.append(parent1.route[i][j])
 
 
-        for i in range(numTrucks):
+        for i in range(globals.numTrucks):
             for j in range(1, parent2.routeLengths[i]):
                 parent2.base.append(parent2.route[i][j])
 
-        for i in range(1, numNodes):
+        for i in range(1, globals.numNodes):
             if i > startPos and i < endPos:
                 child.base[i] = parent1.base[i]
 
-        for i in range(numNodes):
+        for i in range(globals.numNodes):
             if not(child.containsDustbin(parent2.base[i])):
-                for i1 in range(numNodes):
+                for i1 in range(globals.numNodes):
                     if child.base[i1].checkNull():
                         child.base[i1] =  parent2.base[i]
                         break
 
         k=0
         child.base.pop(0)
-        for i in range(numTrucks):
+        for i in range(globals.numTrucks):
             child.route[i].append(RouteManager.getDustbin(0)) # add same first node for each route
             for j in range(child.routeLengths[i]-1):
                 child.route[i].append(child.base[k]) # add shuffled values for rest
@@ -82,8 +82,8 @@ class GA:
         index1 = 0
         index2 = 0
         while index1 == index2:
-            index1 = random.randint(0, numTrucks - 1)
-            index2 = random.randint(0, numTrucks - 1)
+            index1 = random.randint(0, globals.numTrucks - 1)
+            index2 = random.randint(0, globals.numTrucks - 1)
         #print ('Indexes selected: ' + str(index1) + ',' + str(index2))
 
         #generate replacement range for 1
@@ -104,7 +104,7 @@ class GA:
         swap1 = [] # values from 1
         swap2 = [] # values from 2
 
-        if random.randrange(1) < mutationRate:
+        if random.randrange(1) < globals.mutationRate:
             # pop all the values to be replaced
             for i in range(route1startPos, route1lastPos + 1):
                 swap1.append(route.route[index1].pop(route1startPos))
@@ -121,15 +121,19 @@ class GA:
 
             route.routeLengths[index1] = len(route.route[index1])
             route.routeLengths[index2] = len(route.route[index2])
+            route.fitness=0
+            route.distance=0
 
     # Tournament Selection: choose a random set of chromosomes and find the fittest among them 
     @classmethod
     def tournamentSelection (cls, pop):
-        tournament = Population(tournamentSize, False)
+        tournament = Population(globals.tournamentSize, False)
 
-        for i in range(tournamentSize):
+        for i in range(globals.tournamentSize):
             randomInt = random.randint(0, pop.populationSize-1)
             tournament.saveRoute(i, pop.getRoute(randomInt))
 
         fittest = tournament.getFittest()
         return fittest
+
+
